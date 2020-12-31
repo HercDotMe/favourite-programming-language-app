@@ -11,13 +11,16 @@
               img-top
               tag="article"
               class="mb-2 v-100 h-100"
+              v-if="!loading"
           >
-            <b-card-text>
-              Fill the form below so we can take a guess at which is your favourite programming language. First select the provider, currently only GitHub is supported, then enter your username.
-              <br/>
-              When you press "Go" we will read your 100 most recent public repositories and calculate what your favourite programming language might be.
-              <br/>
-              <b-input-group class="mt-3 mb-5">
+            <b-card-text v-if="!favouriteLanguageFound">
+              <p>
+                Fill the form below so we can take a guess at which is your favourite programming language. First select the provider, currently only GitHub is supported, then enter your username.
+              </p>
+              <p>
+                When you press "Calculate &rarr;" we will read your 100 most recent public repositories and calculate what your favourite programming language might be.
+              </p>
+              <b-input-group class="my-3">
                 <b-input-group-prepend>
                   <b-select v-model="provider">
                     <b-select-option value="github">GitHub</b-select-option>
@@ -26,12 +29,25 @@
                   </b-select>
                 </b-input-group-prepend>
                 <b-form-input type="text" v-model="username"></b-form-input>
-                <b-input-group-append>
-                  <b-button variant="success" v-on:click="getFavouriteProgrammingLanguage">Go</b-button>
-                </b-input-group-append>
               </b-input-group>
+              <p>
+                <b-button pill size="sm" variant="outline-success" v-on:click="getFavouriteProgrammingLanguage" class="my-3 float-right">Calculate &rarr;</b-button>
+              </p>
+            </b-card-text>
+            <b-card-text v-else>
+              <p>
+                We have looked through a lot of your repositories to determine that your favourite programming language is <b>{{favouriteLanguage}}</b>!
+              </p>
+              <p>
+                <b-button pill size="sm" variant="outline-info" v-on:click="resetForm" class="my-3 float-right">Check another user &rarr;</b-button>
+              </p>
             </b-card-text>
           </b-card>
+          <div v-else class="text-center loading_screen">
+            <b-spinner type="grow" label="Spinning"></b-spinner>
+            <b-spinner variant="primary" type="grow" label="Spinning"></b-spinner>
+            <b-spinner variant="success" type="grow" label="Spinning"></b-spinner>
+          </div>
         </b-col>
         <b-col cols="1" md="3"></b-col>
       </b-row>
@@ -52,7 +68,9 @@
         username: '',
         provider: 'github',
         error: '',
-        response: ''
+        favouriteLanguageFound: false,
+        favouriteLanguage: '',
+        loading: false
       }
     },
     methods: {
@@ -81,11 +99,27 @@
       getFavouriteProgrammingLanguage: function() {
         if (!this.validateData()) return;
 
+        this.loading = true;
+
         apiService.getFavouriteProgrammingLanguage(this.provider, this.username).then((response) => {
-          console.log(response);
+          if (response.hasOwnProperty('error')) {
+            this.showError(response.error);
+          } else {
+            this.favouriteLanguage = response.name;
+            this.favouriteLanguageFound = true;
+          }
+          this.loading = false;
         }).catch((error) => {
           this.showError('Something went wrong! Please try again later.')
+          console.log(error.message);
+          this.loading = false;
         });
+      },
+      resetForm: function()
+      {
+        this.favouriteLanguage = '';
+        this.username = '';
+        this.favouriteLanguageFound = false;
       }
     }
   }

@@ -6,6 +6,7 @@ import {APIService} from './APIService'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 import 'bootswatch/dist/darkly/bootstrap.min.css'
+import './style.scss'
 
 // Install BootstrapVue
 Vue.use(BootstrapVue)
